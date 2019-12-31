@@ -1,0 +1,20 @@
+hive
+----
+create database countries;
+
+create external table popular_countries(country_name string, country_code string, series_name string, series_code string, yr2000 float, yr2001 float, yr2002 float, yr2003 float, yr2004 float, yr2005 float, yr2006 float, yr2007 float, yr2008 float, yr2009 float, yr2010 float, yr2011 float, yr2012 float, yr2013 float, yr2014 float, yr2015 float ) ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde' location '/user/<username>/ext_table' tblproperties("skip.header.line.count"="1");
+
+LOAD DATA INPATH 'popular_countries.csv' OVERWRITE INTO TABLE popular_countries;
+
+select country_name, series_code,(yr2000+yr2001+yr2002+yr2003+yr2004+yr2005+yr2006+yr2007+yr2008+yr2009+yr2010+yr2011+yr2012+yr2013+yr2014+yr2015) as total from popular_countries where series_code = "EG.USE.PCAP.KG.OE" order by total desc limit 10;
+
+select * from (select country_name, series_code,(yr2000+yr2001+yr2002+yr2003+yr2004+yr2005+yr2006+yr2007+yr2008+yr2009+yr2010+yr2011+yr2012+yr2013+yr2014+yr2015) as total from popular_countries where series_code = "EG.USE.PCAP.KG.OE") as temptab where total > 0 order by total limit 5;
+
+pig
+---
+
+A = LOAD '/user/khandelwalpraful8884/popular_countries.csv' USING org.apache.pig.piggybank.storage.CSVExcelStorage() AS (country_name:chararray, country_code:chararray, series_name:chararray, series_code:chararray, yr2000:float, yr2001:float, yr2002:float, yr2003:float,yr2004:float, yr2005:float, yr2006:float, yr2007:float,yr2008:float, yr2009:float, yr2010:float, yr2011:float,yr2012:float, yr2013:float, yr2014:float, yr2015:float);
+
+store A into 'countries.popular_countries' using org.apache.hive.hcatalog.pig.HCatStorer();
+
+
